@@ -20,7 +20,6 @@ public class Main {
     //Module 4
     private static int comparisons = 0;
 
-
     public static void main(String[] args) {
 
         System.out.println("Seed: " + seed + "\nCourses: " + n + "\nRecords: " + m + "\nCredit cap: " + C);
@@ -173,6 +172,7 @@ public class Main {
 
         return rec;
     }
+
     private static ArrayList<Record> insertionSortRecords() {
         ArrayList<Record> rec = new ArrayList<>(records);
 
@@ -366,6 +366,7 @@ public class Main {
 
         return -1;
     }
+
     private static int gcd(int a, int b) {
         int moduloOperations = 0;
 
