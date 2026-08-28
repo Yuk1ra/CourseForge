@@ -78,9 +78,13 @@ public class Main {
                 case 2:
                     studySort();
                     break;
+
                 case 3:
+                    bestCourseLoad();
                     break;
+
                 case 4:
+
                     break;
                 case 5:
                     break;
@@ -137,7 +141,7 @@ public class Main {
 
         return rec;
     }
-
+    //Module 1
     private static ArrayList<Record> insertionSortRecords() {
         ArrayList<Record> rec = new ArrayList<>(records);
 
@@ -193,7 +197,7 @@ public class Main {
             System.out.println();
         }
     }
-
+    //Module 2
     private static void studySort() {
         Map<String, ArrayList<String>> graph = new HashMap<>();
         Map<String, Integer> prerequisiteCount = new HashMap<>();
@@ -258,5 +262,54 @@ public class Main {
         }
 
         return true;
+    }
+    //Module 3
+    private static void bestCourseLoad() {
+        int k = 10;
+        List<Course> eligible = courses.subList(0, k);
+
+        int totalSubsets = 1 << k;
+
+        int bestValue = -1;
+        int bestCredits = 0;
+        int bestMask = 0;
+        int legal = 0;
+
+        for (int i = 0; i < totalSubsets; i++) {
+
+            int credits = 0;
+            int value = 0;
+
+            for (int j = 0; j < k; j++) {
+
+                if ((i & (1 << j)) != 0) {
+                    credits += eligible.get(j).credits;
+                    value += eligible.get(j).value;
+                }
+            }
+
+            if (credits <= C) {
+                legal++;
+
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestCredits = credits;
+                    bestMask = i;
+                }
+            }
+        }
+
+        System.out.println("Best course load:");
+
+        for (int j = 0; j < k; j++) {
+            if ((bestMask & (1 << j)) != 0) {
+                System.out.println(eligible.get(j));
+            }
+        }
+
+        System.out.println("Credits: " + bestCredits);
+        System.out.println("Value: " + bestValue);
+        System.out.println("Subsets checked: " + totalSubsets);
+        System.out.println("Legal subsets: " + legal);
     }
 }
