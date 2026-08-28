@@ -3,19 +3,22 @@ package org.example;
 import java.util.*;
 
 public class Main {
-
-    public static int seed = 202417427 % 10000;
-    public static int n = 12 + seed % 6; // Courses
-    public static int m = 40 + seed % 20; // Records
-    public static int C = 15 + seed % 4; // Credit cap
-
+    //Constants
+    public static final int seed = 202417427 % 10000;
+    public static final int n = 12 + seed % 6; // Courses
+    public static final int m = 40 + seed % 20; // Records
+    public static final int C = 15 + seed % 4; // Credit cap
+    //Generator and Data
     private static final Generator generator = new Generator();
     private static final ArrayList<Course> courses = generateCourses();
     private static final ArrayList<Record> records = generateRecords();
+    //Module 1
     private static int selectionComparisons = 0;
     private static int insertionComparisons = 0;
     private static int swaps = 0;
     private static int shifts = 0;
+    //Module 4
+    private static int comparisons = 0;
 
 
     public static void main(String[] args) {
@@ -84,9 +87,37 @@ public class Main {
                     break;
 
                 case 4:
+                    comparisons = 0;
+                    ArrayList<Record> sortedRecords = insertionSortRecords();
+                    Scanner scanner = new Scanner(System.in);
+                    System.out.print("Enter target GPA: ");
+                    double targetGPA = scanner.nextDouble();
+
+                    int index = binarySearchGPA(sortedRecords, targetGPA);
+                    if (index != -1) {
+                        System.out.println("Record found at index: " + index);
+                    } else {
+                        System.out.println("Record not found.");
+                    }
+                    System.out.println("Comparisons: " + comparisons);
+
+                    Scanner scanner2 = new Scanner(System.in);
+                    System.out.println("\nGCD and LCM");
+                    System.out.print("Enter first number: ");
+                    int a = scanner2.nextInt();
+                    System.out.print("Enter second number: ");
+                    int b = scanner2.nextInt();
+
+                    int g = gcd(a, b);
+                    int l = (a * b) / g;
+
+                    System.out.println("GCD(" + a + ", " + b + ") = " + g);
+                    System.out.println("LCM = " + l);
 
                     break;
+
                 case 5:
+                    runExperiments();
                     break;
             }
 
@@ -117,6 +148,7 @@ public class Main {
         return records;
     }
 
+    //Module 1
     private static ArrayList<Record> selectionSortRecords() {
         ArrayList<Record> rec = new ArrayList<>(records);
 
@@ -141,7 +173,6 @@ public class Main {
 
         return rec;
     }
-    //Module 1
     private static ArrayList<Record> insertionSortRecords() {
         ArrayList<Record> rec = new ArrayList<>(records);
 
@@ -311,5 +342,265 @@ public class Main {
         System.out.println("Value: " + bestValue);
         System.out.println("Subsets checked: " + totalSubsets);
         System.out.println("Legal subsets: " + legal);
+    }
+    //Module 4
+    private static int binarySearchGPA(ArrayList<Record> sortedRecords, double target) {
+        int low = 0;
+        int high = sortedRecords.size() - 1;
+
+        while (low <= high) {
+            int mid = low + (high - low) / 2;
+
+            comparisons++;
+
+            if (sortedRecords.get(mid).gpa == target) {
+                return mid;
+            }
+
+            if (sortedRecords.get(mid).gpa < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return -1;
+    }
+    private static int gcd(int a, int b) {
+        int moduloOperations = 0;
+
+        while (b != 0) {
+            int remainder = a % b;
+            moduloOperations++;
+
+            a = b;
+            b = remainder;
+        }
+
+        System.out.println("Modulo operations: " + moduloOperations);
+
+        return a;
+    }
+
+    //Module 5
+    private static void runExperiments() {
+
+        int[] sizes = {100, 200, 400, 800, 1600};
+        int runs = 3;
+
+        System.out.println("\n===== MACHINE EXPERIMENTS =====");
+
+        System.out.println("\nSORTING EXPERIMENT");
+        System.out.printf("%-8s %-15s %-15s%n",
+                "n", "Selection Avg", "Insertion Avg");
+
+        for (int size : sizes) {
+
+            long totalSelection = 0;
+            long totalInsertion = 0;
+
+            for (int run = 0; run < runs; run++) {
+
+                ArrayList<Record> testRecords =
+                        generator.generateRecords(size);
+
+                totalSelection += selectionSortExperiment(testRecords);
+                totalInsertion += insertionSortExperiment(testRecords);
+            }
+
+            double selectionAverage =
+                    (double) totalSelection / runs;
+
+            double insertionAverage =
+                    (double) totalInsertion / runs;
+
+            System.out.printf(
+                    "%-8d %-15.2f %-15.2f%n",
+                    size,
+                    selectionAverage,
+                    insertionAverage
+            );
+        }
+
+        System.out.println("\nBINARY SEARCH EXPERIMENT");
+        System.out.printf("%-8s %-20s%n",
+                "n", "Binary Search Avg");
+
+        for (int size : sizes) {
+
+            long totalComparisons = 0;
+
+            for (int run = 0; run < runs; run++) {
+
+                ArrayList<Record> testRecords =
+                        generator.generateRecords(size);
+
+                // Sort the records
+                ArrayList<Record> sorted =
+                        new ArrayList<>(testRecords);
+
+                sortWithoutCounting(sorted);
+
+                double target =
+                        sorted.get(sorted.size() - 1).gpa;
+
+                totalComparisons +=
+                        binarySearchExperiment(sorted, target);
+            }
+
+            double average =
+                    (double) totalComparisons / runs;
+
+            System.out.printf(
+                    "%-8d %-20.2f%n",
+                    size,
+                    average
+            );
+        }
+    }
+
+    private static long selectionSortExperiment(
+            ArrayList<Record> records
+    ) {
+
+        ArrayList<Record> rec =
+                new ArrayList<>(records);
+
+        long comparisons = 0;
+
+        for (int i = 0; i < rec.size() - 1; i++) {
+
+            int minIndex = i;
+
+            for (int j = i + 1; j < rec.size(); j++) {
+
+                comparisons++;
+
+                if (rec.get(j).gpa <
+                        rec.get(minIndex).gpa) {
+
+                    minIndex = j;
+                }
+            }
+
+            if (minIndex != i) {
+
+                Record temp = rec.get(i);
+
+                rec.set(
+                        i,
+                        rec.get(minIndex)
+                );
+
+                rec.set(
+                        minIndex,
+                        temp
+                );
+            }
+        }
+
+        return comparisons;
+    }
+
+    private static long insertionSortExperiment(
+            ArrayList<Record> records
+    ) {
+
+        ArrayList<Record> rec =
+                new ArrayList<>(records);
+
+        long comparisons = 0;
+
+        for (int i = 1; i < rec.size(); i++) {
+
+            Record key = rec.get(i);
+
+            int j = i - 1;
+
+            while (j >= 0) {
+
+                comparisons++;
+
+                if (rec.get(j).gpa <= key.gpa) {
+                    break;
+                }
+
+                rec.set(
+                        j + 1,
+                        rec.get(j)
+                );
+
+                j--;
+            }
+
+            rec.set(j + 1, key);
+        }
+
+        return comparisons;
+    }
+
+    private static void sortWithoutCounting(
+            ArrayList<Record> rec
+    ) {
+
+        for (int i = 0; i < rec.size() - 1; i++) {
+
+            int minIndex = i;
+
+            for (int j = i + 1; j < rec.size(); j++) {
+
+                if (rec.get(j).gpa <
+                        rec.get(minIndex).gpa) {
+
+                    minIndex = j;
+                }
+            }
+
+            if (minIndex != i) {
+
+                Record temp = rec.get(i);
+
+                rec.set(
+                        i,
+                        rec.get(minIndex)
+                );
+
+                rec.set(
+                        minIndex,
+                        temp
+                );
+            }
+        }
+    }
+
+    private static long binarySearchExperiment(
+            ArrayList<Record> sortedRecords,
+            double target
+    ) {
+
+        int low = 0;
+        int high = sortedRecords.size() - 1;
+
+        long comparisons = 0;
+
+        while (low <= high) {
+
+            int mid =
+                    low + (high - low) / 2;
+
+            comparisons++;
+
+            if (sortedRecords.get(mid).gpa == target) {
+                return comparisons;
+            }
+
+            if (sortedRecords.get(mid).gpa < target) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return comparisons;
     }
 }
